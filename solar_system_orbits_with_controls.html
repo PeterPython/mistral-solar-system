@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System Orbits</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Define orbital parameters for some planets
+        const planets = {
+            "Mercury": { a: 0.39, e: 0.2056, inclination: 7.005, color: 0x808080 },
+            "Venus": { a: 0.72, e: 0.0068, inclination: 3.394, color: 0xFFA500 },
+            "Earth": { a: 1.00, e: 0.0167, inclination: 0.000, color: 0x0000FF },
+            "Mars": { a: 1.52, e: 0.0934, inclination: 1.850, color: 0xFF0000 },
+            "Jupiter": { a: 5.20, e: 0.0484, inclination: 1.303, color: 0x8B4513 },
+            "Saturn": { a: 9.58, e: 0.0542, inclination: 2.484, color: 0xFFD700 },
+            "Uranus": { a: 19.22, e: 0.0472, inclination: 0.769, color: 0xADD8E6 },
+            "Neptune": { a: 30.05, e: 0.0086, inclination: 1.769, color: 0x00008B },
+        };
+
+        // Create the orbits
+        const orbits = [];
+        for (const [name, params] of Object.entries(planets)) {
+            const { a, e, inclination, color } = params;
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+
+            // Create an ellipse in the xy-plane
+            for (let i = 0; i < 100; i++) {
+                const theta = (i / 100) * 2 * Math.PI;
+                const r = a * (1 - e * e) / (1 + e * Math.cos(theta));
+                const x = r * Math.cos(theta);
+                const y = r * Math.sin(theta);
+                const z = x * Math.sin(inclination);
+
+                positions.push(x, y, z);
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            const material = new THREE.LineBasicMaterial({ color: color });
+            const orbit = new THREE.Line(geometry, material);
+            orbits.push(orbit);
+            scene.add(orbit);
+        }
+
+        // Set camera position
+        camera.position.z = 40;
+
+        // Add OrbitControls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.25;
+        controls.enableZoom = true;
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
